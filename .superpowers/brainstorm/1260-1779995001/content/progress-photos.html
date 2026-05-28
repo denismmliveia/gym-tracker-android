@@ -1,0 +1,150 @@
+<h2>Sección de Progresión y Fotos</h2>
+<p class="subtitle">¿Cómo quieres ver tu avance y gestionar las fotos corporales?</p>
+
+<div class="section">
+  <h3>📈 Pantalla de Progresión</h3>
+  <div class="cards">
+
+    <div class="card" data-choice="prog-a" onclick="toggleSelect(this)">
+      <div class="card-image">
+        <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-family:sans-serif;font-size:11px;color:#eee;max-width:280px;margin:0 auto;">
+          <div style="font-weight:bold;margin-bottom:8px;color:#e94560;">📈 Progresión — Press Banca</div>
+          <div style="background:#16213e;border-radius:6px;padding:10px;margin-bottom:8px;position:relative;height:80px;">
+            <svg width="100%" height="60" viewBox="0 0 200 60">
+              <polyline points="10,50 40,45 70,38 100,30 130,25 160,18 190,10" fill="none" stroke="#e94560" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="10" cy="50" r="3" fill="#e94560"/>
+              <circle cx="70" cy="38" r="3" fill="#e94560"/>
+              <circle cx="130" cy="25" r="3" fill="#e94560"/>
+              <circle cx="190" cy="10" r="3" fill="#e94560"/>
+              <text x="10" y="58" fill="#888" font-size="8">Ene</text>
+              <text x="70" y="58" fill="#888" font-size="8">Feb</text>
+              <text x="130" y="58" fill="#888" font-size="8">Mar</text>
+              <text x="175" y="58" fill="#888" font-size="8">Abr</text>
+            </svg>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:#aaa;margin-bottom:8px;">
+            <span>Inicio: <b style="color:#e94560;">60kg</b></span>
+            <span>Actual: <b style="color:#e94560;">80kg</b></span>
+            <span>+<b style="color:#4ade80;">33%</b></span>
+          </div>
+          <div style="display:flex;gap:6px;overflow:hidden;">
+            <div style="background:#0f3460;border-radius:12px;padding:3px 8px;font-size:10px;color:#e94560;border:1px solid #e94560;">Peso máx</div>
+            <div style="background:#16213e;border-radius:12px;padding:3px 8px;font-size:10px;color:#888;">Volumen</div>
+            <div style="background:#16213e;border-radius:12px;padding:3px 8px;font-size:10px;color:#888;">1RM est.</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>A — Gráfica por ejercicio</h3>
+        <p>Seleccionas un ejercicio y ves su curva de progresión. Filtros: peso máximo, volumen total (series×reps×kg) o 1RM estimado.</p>
+      </div>
+    </div>
+
+    <div class="card" data-choice="prog-b" onclick="toggleSelect(this)">
+      <div class="card-image">
+        <div style="background:#0d2137;border-radius:8px;padding:12px;font-family:sans-serif;font-size:11px;color:#eee;max-width:280px;margin:0 auto;">
+          <div style="font-weight:bold;margin-bottom:8px;color:#00b4d8;">📈 Progresión — Pecho</div>
+          <div style="background:#1a3a4a;border-radius:6px;padding:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+            <div style="font-size:11px;flex:1;">Press Banca</div>
+            <div style="width:80px;height:20px;position:relative;">
+              <svg width="80" height="20"><polyline points="0,18 20,14 40,10 60,6 80,2" fill="none" stroke="#4ade80" stroke-width="2"/></svg>
+            </div>
+            <div style="color:#4ade80;font-size:10px;">↑33%</div>
+          </div>
+          <div style="background:#1a3a4a;border-radius:6px;padding:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+            <div style="font-size:11px;flex:1;">Aperturas</div>
+            <div style="width:80px;height:20px;position:relative;">
+              <svg width="80" height="20"><polyline points="0,15 20,12 40,14 60,10 80,8" fill="none" stroke="#4ade80" stroke-width="2"/></svg>
+            </div>
+            <div style="color:#4ade80;font-size:10px;">↑20%</div>
+          </div>
+          <div style="background:#1a3a4a;border-radius:6px;padding:8px;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+            <div style="font-size:11px;flex:1;">Fondos</div>
+            <div style="width:80px;height:20px;position:relative;">
+              <svg width="80" height="20"><polyline points="0,18 20,16 40,15 60,12 80,9" fill="none" stroke="#f59e0b" stroke-width="2"/></svg>
+            </div>
+            <div style="color:#f59e0b;font-size:10px;">↑12%</div>
+          </div>
+          <div style="font-size:9px;color:#555;text-align:center;">Toca un ejercicio para ver gráfica detallada</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>B — Resumen por grupo muscular</h3>
+        <p>Vista de todos los ejercicios del grupo con mini-gráficas en línea. Toca uno para ver la gráfica completa. Mejor visión global.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px;">
+  <h3>📷 Álbum de progresión corporal</h3>
+  <div class="cards">
+
+    <div class="card" data-choice="photo-a" onclick="toggleSelect(this)">
+      <div class="card-image">
+        <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-family:sans-serif;font-size:11px;color:#eee;max-width:280px;margin:0 auto;">
+          <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+            <div style="background:#e94560;border-radius:12px;padding:3px 8px;font-size:10px;">Todo el cuerpo</div>
+            <div style="background:#333;border-radius:12px;padding:3px 8px;font-size:10px;">Pecho</div>
+            <div style="background:#333;border-radius:12px;padding:3px 8px;font-size:10px;">Espalda</div>
+            <div style="background:#333;border-radius:12px;padding:3px 8px;font-size:10px;">Brazos</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+            <div style="background:#2a1a2e;border-radius:4px;height:55px;display:flex;align-items:center;justify-content:center;">
+              <div style="text-align:center;"><div style="font-size:16px;">🖼️</div><div style="font-size:8px;color:#888;margin-top:2px;">Ene 2024</div></div>
+            </div>
+            <div style="background:#2a1a2e;border-radius:4px;height:55px;display:flex;align-items:center;justify-content:center;">
+              <div style="text-align:center;"><div style="font-size:16px;">🖼️</div><div style="font-size:8px;color:#888;margin-top:2px;">Feb 2024</div></div>
+            </div>
+            <div style="background:#2a1a2e;border-radius:4px;height:55px;display:flex;align-items:center;justify-content:center;">
+              <div style="text-align:center;"><div style="font-size:16px;">🖼️</div><div style="font-size:8px;color:#888;margin-top:2px;">Mar 2024</div></div>
+            </div>
+            <div style="background:#2a1a2e;border-radius:4px;height:55px;display:flex;align-items:center;justify-content:center;">
+              <div style="text-align:center;"><div style="font-size:16px;">🖼️</div><div style="font-size:8px;color:#888;margin-top:2px;">Abr 2024</div></div>
+            </div>
+            <div style="background:#1a1a2e;border-radius:4px;height:55px;border:2px dashed #333;display:flex;align-items:center;justify-content:center;">
+              <div style="font-size:20px;color:#555;">+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>A — Galería filtrable por zona</h3>
+        <p>Filtros por zona corporal (cuerpo entero, pecho, espalda, brazos...) + fecha. Grid cronológico, botón para añadir foto nueva.</p>
+      </div>
+    </div>
+
+    <div class="card" data-choice="photo-b" onclick="toggleSelect(this)">
+      <div class="card-image">
+        <div style="background:#0d2137;border-radius:8px;padding:12px;font-family:sans-serif;font-size:11px;color:#eee;max-width:280px;margin:0 auto;">
+          <div style="font-weight:bold;margin-bottom:8px;color:#00b4d8;">Comparar progresión</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+            <div style="background:#1a3a4a;border-radius:6px;padding:6px;text-align:center;">
+              <div style="background:#0a2030;border-radius:4px;height:70px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:20px;">🖼️</div>
+              <div style="font-size:9px;color:#888;">Enero 2024</div>
+            </div>
+            <div style="background:#1a3a4a;border-radius:6px;padding:6px;text-align:center;">
+              <div style="background:#0a2030;border-radius:4px;height:70px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:20px;">🖼️</div>
+              <div style="font-size:9px;color:#888;">Abril 2024</div>
+            </div>
+          </div>
+          <div style="background:#1a3a4a;border-radius:6px;padding:6px;display:flex;align-items:center;gap:8px;">
+            <div style="font-size:9px;color:#888;">Desliza para comparar</div>
+            <div style="flex:1;height:4px;background:#0a2030;border-radius:2px;position:relative;">
+              <div style="position:absolute;left:50%;top:-4px;transform:translateX(-50%);background:#00b4d8;border-radius:50%;width:12px;height:12px;"></div>
+              <div style="width:50%;height:100%;background:#00b4d8;border-radius:2px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>B — Vista comparativa antes/después</h3>
+        <p>Seleccionas dos fotos de fechas distintas y las comparas lado a lado. Incluye slider deslizable para ver la transición.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Puedes elegir una opción de cada sección. Haz clic en las que prefieras.</p>

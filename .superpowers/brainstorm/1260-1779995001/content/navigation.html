@@ -1,0 +1,121 @@
+<h2>Estructura de navegación principal</h2>
+<p class="subtitle">¿Cómo quieres organizar las pantallas de la app?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:#eee;">
+        <div class="mock-nav" style="background:#e94560;color:white;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:13px;font-weight:bold;">💪 GymTracker</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div style="background:#16213e;border-radius:6px;padding:10px;text-align:center;border:2px solid #e94560;">
+            <div style="font-size:20px;">🏋️</div>
+            <div style="font-size:11px;margin-top:4px;">Pecho</div>
+          </div>
+          <div style="background:#16213e;border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:20px;">💪</div>
+            <div style="font-size:11px;margin-top:4px;">Bíceps</div>
+          </div>
+          <div style="background:#16213e;border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:20px;">🦵</div>
+            <div style="font-size:11px;margin-top:4px;">Piernas</div>
+          </div>
+          <div style="background:#16213e;border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:20px;">🔙</div>
+            <div style="font-size:11px;margin-top:4px;">Espalda</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-around;background:#0f3460;border-radius:6px;padding:8px;">
+          <span style="font-size:10px;color:#e94560;">● Ejercicios</span>
+          <span style="font-size:10px;color:#888;">📈 Progresión</span>
+          <span style="font-size:10px;color:#888;">📷 Fotos</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Grid de grupos musculares</h3>
+      <p>Pantalla inicial con tarjetas por grupo muscular. Bottom navigation bar con 3 pestañas: Ejercicios, Progresión y Fotos.</p>
+      <ul style="font-size:13px;color:#aaa;margin-top:8px;padding-left:16px;">
+        <li>Acceso rápido por músculo</li>
+        <li>Navegación muy visual</li>
+        <li>Ideal si tienes 4–8 grupos</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0d2137;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:#eee;">
+        <div style="background:#00b4d8;color:#000;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:13px;font-weight:bold;">💪 GymTracker</div>
+        <div style="background:#1a3a4a;border-radius:6px;padding:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+          <span style="background:#00b4d8;color:#000;border-radius:4px;padding:2px 6px;font-size:10px;">PECHO</span>
+          <span style="font-size:11px;">Press Banca — 80kg</span>
+          <span style="margin-left:auto;font-size:10px;color:#00b4d8;">3×8</span>
+        </div>
+        <div style="background:#1a3a4a;border-radius:6px;padding:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+          <span style="background:#00b4d8;color:#000;border-radius:4px;padding:2px 6px;font-size:10px;">PECHO</span>
+          <span style="font-size:11px;">Aperturas — 18kg</span>
+          <span style="margin-left:auto;font-size:10px;color:#00b4d8;">3×12</span>
+        </div>
+        <div style="background:#1a3a4a;border-radius:6px;padding:8px;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+          <span style="background:#48cae4;color:#000;border-radius:4px;padding:2px 6px;font-size:10px;">ESPALDA</span>
+          <span style="font-size:11px;">Dominadas — peso corp.</span>
+          <span style="margin-left:auto;font-size:10px;color:#48cae4;">4×6</span>
+        </div>
+        <div style="display:flex;justify-content:space-around;background:#0a2030;border-radius:6px;padding:8px;">
+          <span style="font-size:10px;color:#00b4d8;">● Lista</span>
+          <span style="font-size:10px;color:#888;">📈 Progresión</span>
+          <span style="font-size:10px;color:#888;">📷 Fotos</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Lista unificada con etiquetas</h3>
+      <p>Todos los ejercicios en una lista, agrupados y filtrables por grupo muscular mediante chips/etiquetas de color.</p>
+      <ul style="font-size:13px;color:#aaa;margin-top:8px;padding-left:16px;">
+        <li>Vista global de todos los ejercicios</li>
+        <li>Fácil de buscar y filtrar</li>
+        <li>Más compacto si tienes muchos ejercicios</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#1a1a1a;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:#eee;">
+        <div style="background:#7b2d8b;color:white;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:13px;font-weight:bold;">💪 GymTracker</div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;overflow:hidden;">
+          <div style="background:#7b2d8b;border-radius:12px;padding:4px 10px;font-size:10px;white-space:nowrap;">Pecho ✓</div>
+          <div style="background:#333;border-radius:12px;padding:4px 10px;font-size:10px;white-space:nowrap;">Espalda</div>
+          <div style="background:#333;border-radius:12px;padding:4px 10px;font-size:10px;white-space:nowrap;">Piernas</div>
+          <div style="background:#333;border-radius:12px;padding:4px 10px;font-size:10px;white-space:nowrap;">Hombros</div>
+        </div>
+        <div style="background:#2a1a2e;border-radius:8px;padding:10px;margin-bottom:8px;">
+          <div style="font-size:12px;font-weight:bold;margin-bottom:6px;">Press Banca</div>
+          <div style="display:flex;gap:6px;">
+            <div style="background:#7b2d8b;border-radius:4px;padding:4px 8px;font-size:11px;text-align:center;"><div>3</div><div style="font-size:9px;color:#ddd;">series</div></div>
+            <div style="background:#7b2d8b;border-radius:4px;padding:4px 8px;font-size:11px;text-align:center;"><div>8</div><div style="font-size:9px;color:#ddd;">reps</div></div>
+            <div style="background:#7b2d8b;border-radius:4px;padding:4px 8px;font-size:11px;text-align:center;"><div>80kg</div><div style="font-size:9px;color:#ddd;">peso</div></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-around;background:#111;border-radius:6px;padding:8px;">
+          <span style="font-size:10px;color:#7b2d8b;">● Grupos</span>
+          <span style="font-size:10px;color:#888;">📈 Stats</span>
+          <span style="font-size:10px;color:#888;">📷 Fotos</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Tabs por grupo muscular</h3>
+      <p>Pestañas horizontales deslizables (swipe) para cada grupo muscular. Al entrar ves directamente los ejercicios de ese músculo.</p>
+      <ul style="font-size:13px;color:#aaa;margin-top:8px;padding-left:16px;">
+        <li>Navegación muy rápida con swipe</li>
+        <li>Cada grupo bien separado</li>
+        <li>Menos visual que el grid</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Haz clic en la opción que más te guste, o dime en el terminal si prefieres combinar elementos.</p>

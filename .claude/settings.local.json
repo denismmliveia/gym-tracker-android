@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash *)",
+      "Bash(./gradlew dependencies *)",
+      "Bash(./gradlew :app:dependencies --configuration releaseRuntimeClasspath)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit *)",
+      "Bash(./gradlew compileDebugKotlin)",
+      "Bash(./gradlew test *)",
+      "Bash(./gradlew :app:testDebugUnitTest --tests \"com.gymtracker.domain.voice.SessionParserTest\")",
+      "Bash(cat app/build.gradle)",
+      "Bash(cat app/build.gradle.kts)",
+      "Bash(./gradlew :app:testDebugUnitTest)",
+      "Bash(./gradlew assembleDebug --no-daemon)",
+      "Bash(xargs grep *)"
+    ]
+  }
+}
