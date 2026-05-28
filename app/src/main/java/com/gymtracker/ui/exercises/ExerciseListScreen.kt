@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gymtracker.GymTrackerApp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseListScreen(
     padding: PaddingValues,
@@ -44,6 +45,7 @@ fun ExerciseListScreen(
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
+                .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(vertical = 8.dp)
@@ -66,7 +68,7 @@ fun ExerciseListScreen(
 }
 
 @Composable
-fun ExerciseRow(item: ExerciseUi, onClick: () -> Unit) {
+private fun ExerciseRow(item: ExerciseUi, onClick: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
             modifier = Modifier
@@ -81,7 +83,7 @@ fun ExerciseRow(item: ExerciseUi, onClick: () -> Unit) {
             )
             if (item.lastWeightKg != null) {
                 Text(
-                    "${item.lastSets}×${item.lastReps} · ${item.lastWeightKg}kg",
+                    "${item.lastSets}×${item.lastReps} · ${"%.1f".format(item.lastWeightKg)}kg",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -91,7 +93,7 @@ fun ExerciseRow(item: ExerciseUi, onClick: () -> Unit) {
 }
 
 @Composable
-fun AddExerciseDialog(onConfirm: (String, String) -> Unit, onDismiss: () -> Unit) {
+private fun AddExerciseDialog(onConfirm: (String, String) -> Unit, onDismiss: () -> Unit) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     AlertDialog(
