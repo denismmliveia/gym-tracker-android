@@ -1,0 +1,6 @@
+[versions]
+# Dependencies are declared inline in app/build.gradle.kts
+
+[libraries]
+
+[plugins]
