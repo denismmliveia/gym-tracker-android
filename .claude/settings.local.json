@@ -15,7 +15,9 @@
       "Bash(cat app/build.gradle.kts)",
       "Bash(./gradlew :app:testDebugUnitTest)",
       "Bash(./gradlew assembleDebug --no-daemon)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(adb devices *)",
+      "Bash(adb install *)"
     ]
   }
 }

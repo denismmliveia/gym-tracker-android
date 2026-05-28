@@ -1,6 +1,7 @@
 package com.gymtracker.ui.exercises
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -98,6 +99,23 @@ class ExerciseDetailViewModel(
 
     fun dismissVoiceDialog() = _state.update { it.copy(pendingParsed = null) }
     fun dismissRecord() = _state.update { it.copy(isPersonalRecord = false, justSaved = false) }
+
+    fun updatePhoto(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            val exercise = _state.value.exercise ?: return@launch
+            val destFile = java.io.File(context.filesDir, "exercise_${exerciseId}.jpg")
+            val copied = runCatching {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    destFile.outputStream().use { output -> input.copyTo(output) }
+                } != null
+            }.getOrDefault(false)
+            if (copied) {
+                val updated = exercise.copy(photoPath = destFile.absolutePath)
+                exerciseRepo.updateExercise(updated)
+                _state.update { it.copy(exercise = updated) }
+            }
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()

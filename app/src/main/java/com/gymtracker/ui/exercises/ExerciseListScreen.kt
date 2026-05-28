@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -35,24 +36,32 @@ fun ExerciseListScreen(
     val exercises by vm.exercises.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, "Añadir ejercicio")
-            }
-        }
-    ) { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
-                .padding(innerPadding)
+                .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(vertical = 8.dp)
+            contentPadding = PaddingValues(
+                top = 8.dp,
+                bottom = 80.dp  // espacio para el FAB
+            )
         ) {
             items(exercises, key = { it.exercise.id }) { item ->
                 ExerciseRow(item = item, onClick = { onExerciseClick(item.exercise.id) })
             }
+        }
+        FloatingActionButton(
+            onClick = { showAddDialog = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(
+                    end = 16.dp,
+                    bottom = padding.calculateBottomPadding() + 16.dp
+                )
+        ) {
+            Icon(Icons.Default.Add, "Añadir ejercicio")
         }
     }
 
