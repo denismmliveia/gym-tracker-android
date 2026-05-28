@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -81,7 +82,7 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                     Spacer(Modifier.width(8.dp))
                     Text(if (state.isListening) "Escuchando..." else "Voz")
                 }
-                OutlinedButton(onClick = { vm.saveSession() }, modifier = Modifier.weight(1f)) {
+                OutlinedButton(onClick = { vm.saveSession() }, modifier = Modifier.weight(1f), enabled = !state.isSaving) {
                     Icon(Icons.Default.Check, null)
                     Spacer(Modifier.width(8.dp))
                     Text("Guardar")
@@ -92,9 +93,9 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
 
     // Voice confirmation dialog
     state.pendingParsed?.let { parsed ->
-        var sets by remember { mutableStateOf(parsed.sets?.toString() ?: "") }
-        var reps by remember { mutableStateOf(parsed.reps?.toString() ?: "") }
-        var weight by remember { mutableStateOf(parsed.weightKg?.toString() ?: "") }
+        var sets by rememberSaveable { mutableStateOf(parsed.sets?.toString() ?: "") }
+        var reps by rememberSaveable { mutableStateOf(parsed.reps?.toString() ?: "") }
+        var weight by rememberSaveable { mutableStateOf(parsed.weightKg?.toString() ?: "") }
         AlertDialog(
             onDismissRequest = { vm.dismissVoiceDialog() },
             title = { Text("Confirmar sesión") },

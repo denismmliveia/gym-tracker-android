@@ -24,7 +24,8 @@ data class DetailUiState(
     val isListening: Boolean = false,
     val pendingParsed: ParsedSession? = null,   // waiting for user confirmation
     val voiceRawText: String = "",
-    val justSaved: Boolean = false
+    val justSaved: Boolean = false,
+    val isSaving: Boolean = false
 )
 
 class ExerciseDetailViewModel(
@@ -56,7 +57,9 @@ class ExerciseDetailViewModel(
     fun setWeight(value: Float) = _state.update { it.copy(weightKg = maxOf(0f, value)) }
 
     fun saveSession() {
+        if (_state.value.isSaving) return
         viewModelScope.launch {
+            _state.update { it.copy(isSaving = true) }
             val s = _state.value
             val maxWeight = sessionRepo.getMaxWeight(exerciseId) ?: 0f
             val isRecord = s.weightKg > maxWeight
@@ -64,7 +67,7 @@ class ExerciseDetailViewModel(
                 Session(exerciseId = exerciseId, date = System.currentTimeMillis(),
                     sets = s.sets, reps = s.reps, weightKg = s.weightKg)
             )
-            _state.update { it.copy(isPersonalRecord = isRecord, justSaved = true) }
+            _state.update { it.copy(isSaving = false, isPersonalRecord = isRecord, justSaved = isRecord) }
         }
     }
 
@@ -86,12 +89,20 @@ class ExerciseDetailViewModel(
     }
 
     fun confirmVoiceSession(sets: Int, reps: Int, weightKg: Float) {
-        _state.update { it.copy(sets = sets, reps = reps, weightKg = weightKg, pendingParsed = null) }
+        setSets(sets)
+        setReps(reps)
+        setWeight(weightKg)
+        _state.update { it.copy(pendingParsed = null) }
         saveSession()
     }
 
     fun dismissVoiceDialog() = _state.update { it.copy(pendingParsed = null) }
     fun dismissRecord() = _state.update { it.copy(isPersonalRecord = false, justSaved = false) }
+
+    override fun onCleared() {
+        super.onCleared()
+        _state.update { it.copy(isListening = false) }
+    }
 
     class Factory(
         private val exerciseId: Long,
