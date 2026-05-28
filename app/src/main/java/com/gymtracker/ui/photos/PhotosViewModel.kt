@@ -30,10 +30,17 @@ class PhotosViewModel(private val repo: BodyPhotoRepository) : ViewModel() {
     fun savePhoto(context: Context, uri: Uri, zone: BodyZone) {
         viewModelScope.launch {
             val destFile = File(context.filesDir, "body_${UUID.randomUUID()}.jpg")
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                destFile.outputStream().use { output -> input.copyTo(output) }
+            val copied = runCatching {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    destFile.outputStream().use { output -> input.copyTo(output) }
+                } != null
+            }.getOrDefault(false)
+
+            if (copied) {
+                repo.insertPhoto(BodyPhoto(date = System.currentTimeMillis(), zone = zone, photoPath = destFile.absolutePath))
+            } else {
+                destFile.delete()
             }
-            repo.insertPhoto(BodyPhoto(date = System.currentTimeMillis(), zone = zone, photoPath = destFile.absolutePath))
         }
     }
 
