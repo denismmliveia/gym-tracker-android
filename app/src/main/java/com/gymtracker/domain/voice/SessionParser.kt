@@ -19,30 +19,45 @@ class SessionParser {
     }
 
     private fun extractSets(t: String): Int? {
-        Regex("""(\d+)\s*series""").find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
-        Regex("""(\d+)\s*[xX×]\s*\d+""").find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
-        Regex("""(\d+)\s*por\s*\d+""").find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
-        // "Z kilos, X de Y" — weight comes first, sets is the number after comma/kilos
-        Regex("""(?:kilos?|kg)[^0-9]*(\d+)\s*de\s*\d+""").find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
-        Regex("""(\d+)\s*de\s*\d+""").find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+        SETS_SERIES.find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+        SETS_X.find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+        SETS_POR.find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+        SETS_AFTER_KG.find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+        SETS_DE.find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
         return null
     }
 
     private fun extractReps(t: String): Int? {
-        Regex("""series\s+de\s+(\d+)""").find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
-        Regex("""\d+\s*[xX×]\s*(\d+)""").find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
-        Regex("""\d+\s*por\s*(\d+)""").find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
-        Regex("""(?:kilos?|kg)[^0-9]*\d+\s*de\s*(\d+)""").find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
-        Regex("""\d+\s*de\s*(\d+)""").find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+        REPS_SERIES_DE.find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+        REPS_X.find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+        REPS_POR.find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+        REPS_AFTER_KG.find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+        REPS_DE.find(t)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
         return null
     }
 
     private fun extractWeight(t: String): Float? {
-        if (Regex("""sin\s*peso|peso\s*corporal|cuerpo""").containsMatchIn(t)) return 0f
-        Regex("""(\d+(?:[.,]\d+)?)\s*(?:kilos?|kg)""").find(t)?.groupValues?.get(1)
-            ?.replace(',', '.')?.toFloatOrNull()?.let { return it }
-        Regex("""\b(?:con|a)\s+(\d+(?:[.,]\d+)?)(?!\s*(?:series?|reps?|repeticiones?))""").find(t)
-            ?.groupValues?.get(1)?.replace(',', '.')?.toFloatOrNull()?.let { return it }
+        if (WEIGHT_ZERO.containsMatchIn(t)) return 0f
+        WEIGHT_KG.find(t)?.groupValues?.get(1)?.replace(',', '.')?.toFloatOrNull()?.let { return it }
+        WEIGHT_CON_A.find(t)?.groupValues?.get(1)?.replace(',', '.')?.toFloatOrNull()?.let { return it }
         return null
+    }
+
+    companion object {
+        private val SETS_SERIES = Regex("""(\d+)\s*series""")
+        private val SETS_X = Regex("""(\d+)\s*[xX×]\s*\d+""")
+        private val SETS_POR = Regex("""(\d+)\s*por\s*\d+""")
+        private val SETS_AFTER_KG = Regex("""(?:kilos?|kg)[^0-9]*(\d+)\s*de\s*\d+""")
+        private val SETS_DE = Regex("""(\d+)\s*de\s*\d+""")
+
+        private val REPS_SERIES_DE = Regex("""series\s+de\s+(\d+)""")
+        private val REPS_X = Regex("""\d+\s*[xX×]\s*(\d+)""")
+        private val REPS_POR = Regex("""\d+\s*por\s*(\d+)""")
+        private val REPS_AFTER_KG = Regex("""(?:kilos?|kg)[^0-9]*\d+\s*de\s*(\d+)""")
+        private val REPS_DE = Regex("""\d+\s*de\s*(\d+)""")
+
+        private val WEIGHT_ZERO = Regex("""sin\s*peso|peso\s*corporal|cuerpo""")
+        private val WEIGHT_KG = Regex("""(\d+(?:[.,]\d+)?)\s*(?:kilos?|kg)""")
+        private val WEIGHT_CON_A = Regex("""\b(?:con|a)\s+(\d+(?:[.,]\d+)?)(?!\s*(?:series?|reps?|repeticiones?))""")
     }
 }
