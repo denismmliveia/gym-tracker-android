@@ -1,10 +1,12 @@
 package com.gymtracker.ui.home
 
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +19,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gymtracker.GymTrackerApp
+import com.gymtracker.data.db.AppDatabase
+import com.gymtracker.data.repository.CsvExporter
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,6 +30,7 @@ fun HomeScreen(
     onGroupClick: (Long) -> Unit
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val app = context.applicationContext as GymTrackerApp
     val vm: HomeViewModel = viewModel(
         factory = HomeViewModel.Factory(app.container.exerciseRepository, app.container.sessionRepository)
@@ -33,7 +39,29 @@ fun HomeScreen(
     var showAddDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("GymTracker", fontWeight = FontWeight.Bold) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text("GymTracker", fontWeight = FontWeight.Bold) },
+                actions = {
+                    var menuExpanded by remember { mutableStateOf(false) }
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(Icons.Default.MoreVert, "Menú")
+                    }
+                    DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                        DropdownMenuItem(
+                            text = { Text("Exportar CSV") },
+                            onClick = {
+                                menuExpanded = false
+                                scope.launch {
+                                    val intent = CsvExporter.export(context, AppDatabase.getInstance(context))
+                                    context.startActivity(Intent.createChooser(intent, "Exportar datos"))
+                                }
+                            }
+                        )
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Añadir grupo muscular")
