@@ -8,5 +8,6 @@ class Converters {
     fun fromBodyZone(zone: BodyZone): String = zone.name
 
     @TypeConverter
-    fun toBodyZone(value: String): BodyZone = BodyZone.valueOf(value)
+    fun toBodyZone(value: String): BodyZone =
+        BodyZone.entries.firstOrNull { it.name == value } ?: BodyZone.FULL_BODY
 }
