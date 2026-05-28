@@ -44,7 +44,6 @@ fun HomeScreen(
             columns = GridCells.Fixed(2),
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(padding)
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
