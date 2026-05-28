@@ -29,19 +29,22 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
-                Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "gymtracker.db")
-                    .addCallback(object : Callback() {
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
-                            INSTANCE?.let { database ->
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    DatabaseSeeder.seed(database)
-                                }
-                            }
+                INSTANCE ?: buildDatabase(context.applicationContext).also { INSTANCE = it }
+            }
+
+        private fun buildDatabase(appContext: Context): AppDatabase {
+            lateinit var instance: AppDatabase
+            instance = Room.databaseBuilder(appContext, AppDatabase::class.java, "gymtracker.db")
+                .addCallback(object : Callback() {
+                    override fun onCreate(db: SupportSQLiteDatabase) {
+                        super.onCreate(db)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            DatabaseSeeder.seed(instance)
                         }
-                    })
-                    .build()
-                    .also { INSTANCE = it }
+                    }
+                })
+                .build()
+            return instance
         }
     }
 }
