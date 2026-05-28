@@ -8,6 +8,7 @@ import com.gymtracker.data.db.entity.Session
 import com.gymtracker.data.repository.ExerciseRepository
 import com.gymtracker.data.repository.SessionRepository
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 enum class ProgressMetric { MAX_WEIGHT, VOLUME, ONE_RM }
 
@@ -24,16 +25,20 @@ class ExerciseProgressViewModel(
 ) : ViewModel() {
 
     private val _metric = MutableStateFlow(ProgressMetric.MAX_WEIGHT)
+    private val _exercise = MutableStateFlow<Exercise?>(null)
+
+    init {
+        viewModelScope.launch {
+            _exercise.value = exerciseRepo.getExerciseById(exerciseId)
+        }
+    }
 
     val state: StateFlow<ExerciseProgressState> = combine(
         sessionRepo.getSessionsForExercise(exerciseId),
-        _metric
-    ) { sessions, metric ->
-        ExerciseProgressState(
-            exercise = exerciseRepo.getExerciseById(exerciseId),
-            sessions = sessions,
-            metric = metric
-        )
+        _metric,
+        _exercise
+    ) { sessions, metric, exercise ->
+        ExerciseProgressState(exercise = exercise, sessions = sessions, metric = metric)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ExerciseProgressState())
 
     fun setMetric(metric: ProgressMetric) { _metric.value = metric }
