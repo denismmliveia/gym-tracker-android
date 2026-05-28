@@ -23,7 +23,7 @@ interface SessionDao {
     """)
     suspend fun getLatestForGroup(groupId: Long): Session?
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(session: Session): Long
 
     @Delete

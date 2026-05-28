@@ -13,7 +13,7 @@ interface BodyPhotoDao {
     @Query("SELECT * FROM body_photos WHERE zone = :zone ORDER BY date DESC")
     fun getByZone(zone: BodyZone): Flow<List<BodyPhoto>>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(photo: BodyPhoto): Long
 
     @Delete
