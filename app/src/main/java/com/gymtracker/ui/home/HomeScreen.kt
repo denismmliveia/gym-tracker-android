@@ -22,6 +22,8 @@ import com.gymtracker.GymTrackerApp
 import com.gymtracker.data.db.AppDatabase
 import com.gymtracker.data.repository.CsvExporter
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +56,9 @@ fun HomeScreen(
                                 menuExpanded = false
                                 scope.launch {
                                     val intent = CsvExporter.export(context, AppDatabase.getInstance(context))
-                                    context.startActivity(Intent.createChooser(intent, "Exportar datos"))
+                                    withContext(Dispatchers.Main) {
+                                        context.startActivity(Intent.createChooser(intent, "Exportar datos"))
+                                    }
                                 }
                             }
                         )

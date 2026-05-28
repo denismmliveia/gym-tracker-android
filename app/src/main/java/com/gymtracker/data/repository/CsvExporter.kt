@@ -30,7 +30,8 @@ object CsvExporter {
             }
         }
 
-        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "gymtracker_export.csv")
+        val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) ?: context.filesDir
+        val file = File(dir, "gymtracker_export.csv")
         file.writeText(sb.toString())
 
         Intent(Intent.ACTION_SEND).apply {
