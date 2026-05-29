@@ -4,6 +4,7 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -204,7 +205,7 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
         var userScale by remember { mutableStateOf(1f) }
 
         androidx.compose.ui.window.Dialog(
-            onDismissRequest = { vm.cancelPhotoFrame() },
+            onDismissRequest = { if (!state.isSavingPhoto) vm.cancelPhotoFrame() },
             properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Box(
@@ -212,10 +213,10 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                     .fillMaxSize()
                     .background(androidx.compose.ui.graphics.Color.Black)
             ) {
-                // Framing area
                 var viewWidthPx by remember { mutableStateOf(0f) }
                 var viewHeightPx by remember { mutableStateOf(0f) }
 
+                // Image + gesture area
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -246,9 +247,50 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                                 translationY = panY
                             }
                     )
+
+                    // Rule-of-thirds grid
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val lineColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.3f)
+                        // vertical thirds
+                        drawLine(lineColor, androidx.compose.ui.geometry.Offset(size.width / 3f, 0f), androidx.compose.ui.geometry.Offset(size.width / 3f, size.height), strokeWidth = 1f)
+                        drawLine(lineColor, androidx.compose.ui.geometry.Offset(size.width * 2f / 3f, 0f), androidx.compose.ui.geometry.Offset(size.width * 2f / 3f, size.height), strokeWidth = 1f)
+                        // horizontal thirds
+                        drawLine(lineColor, androidx.compose.ui.geometry.Offset(0f, size.height / 3f), androidx.compose.ui.geometry.Offset(size.width, size.height / 3f), strokeWidth = 1f)
+                        drawLine(lineColor, androidx.compose.ui.geometry.Offset(0f, size.height * 2f / 3f), androidx.compose.ui.geometry.Offset(size.width, size.height * 2f / 3f), strokeWidth = 1f)
+                        // Corner L-markers
+                        val m = 16f; val len = 28f
+                        // top-left
+                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, m), androidx.compose.ui.geometry.Offset(m + len, m), strokeWidth = 2.5f)
+                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, m), androidx.compose.ui.geometry.Offset(m, m + len), strokeWidth = 2.5f)
+                        // top-right
+                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, m), androidx.compose.ui.geometry.Offset(size.width - m - len, m), strokeWidth = 2.5f)
+                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, m), androidx.compose.ui.geometry.Offset(size.width - m, m + len), strokeWidth = 2.5f)
+                        // bottom-left
+                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, size.height - m), androidx.compose.ui.geometry.Offset(m + len, size.height - m), strokeWidth = 2.5f)
+                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, size.height - m), androidx.compose.ui.geometry.Offset(m, size.height - m - len), strokeWidth = 2.5f)
+                        // bottom-right
+                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, size.height - m), androidx.compose.ui.geometry.Offset(size.width - m - len, size.height - m), strokeWidth = 2.5f)
+                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, size.height - m), androidx.compose.ui.geometry.Offset(size.width - m, size.height - m - len), strokeWidth = 2.5f)
+                    }
+
+                    // Instruction chip
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 12.dp),
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.6f)
+                    ) {
+                        Text(
+                            "Pellizca para zoom · Arrastra para encuadrar",
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = androidx.compose.ui.graphics.Color.White
+                        )
+                    }
                 }
 
-                // Buttons
+                // Buttons row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -259,14 +301,31 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                     OutlinedButton(
                         onClick = { vm.cancelPhotoFrame() },
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = androidx.compose.ui.graphics.Color.White)
+                        enabled = !state.isSavingPhoto,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = androidx.compose.ui.graphics.Color.White
+                        )
                     ) { Text("Cancelar") }
+
                     Button(
                         onClick = {
-                            vm.savePhotoWithFrame(context, uri, panX, panY, userScale, viewWidthPx, viewHeightPx)
+                            vm.savePhotoWithFrame(
+                                context, uri, panX, panY, userScale, viewWidthPx, viewHeightPx
+                            )
                         },
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Guardar encuadre") }
+                        modifier = Modifier.weight(1f),
+                        enabled = !state.isSavingPhoto
+                    ) {
+                        if (state.isSavingPhoto) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("Guardar encuadre")
+                        }
+                    }
                 }
             }
         }
