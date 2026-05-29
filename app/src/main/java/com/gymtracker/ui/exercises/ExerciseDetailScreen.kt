@@ -235,15 +235,15 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit, bottomPadding: Dp
                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StepperField(label = "SERIES", value = state.sets,
+                    StepperField(label = "SERIES", displayValue = state.sets.toString(),
                         onDecrement = { vm.setSets(state.sets - 1) },
                         onIncrement = { vm.setSets(state.sets + 1) })
-                    StepperField(label = "REPS", value = state.reps,
+                    StepperField(label = "REPS", displayValue = state.reps.toString(),
                         onDecrement = { vm.setReps(state.reps - 1) },
                         onIncrement = { vm.setReps(state.reps + 1) })
-                    StepperField(label = "KG", value = state.weightKg.toInt(),
-                        onDecrement = { vm.setWeight(state.weightKg - 2.5f) },
-                        onIncrement = { vm.setWeight(state.weightKg + 2.5f) })
+                    StepperField(label = "KG", displayValue = "%.1f".format(state.weightKg),
+                        onDecrement = { vm.setWeight(state.weightKg - 0.5f) },
+                        onIncrement = { vm.setWeight(state.weightKg + 0.5f) })
                 }
             }
 
@@ -350,11 +350,11 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit, bottomPadding: Dp
 }
 
 @Composable
-private fun StepperField(label: String, value: Int, onDecrement: () -> Unit, onIncrement: () -> Unit) {
+private fun StepperField(label: String, displayValue: String, onDecrement: () -> Unit, onIncrement: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
         Spacer(Modifier.height(4.dp))
-        Text(value.toString(), fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+        Text(displayValue, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             FilledTonalIconButton(onClick = onDecrement, modifier = Modifier.size(32.dp)) {
