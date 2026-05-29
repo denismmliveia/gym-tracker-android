@@ -29,12 +29,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import androidx.compose.ui.unit.Dp
 import com.gymtracker.GymTrackerApp
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
+fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit, bottomPadding: Dp = 0.dp) {
     val context = LocalContext.current
     val app = context.applicationContext as GymTrackerApp
     val vm: ExerciseDetailViewModel = viewModel(
@@ -145,7 +146,7 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding()
+                    .padding(bottom = bottomPadding)
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {

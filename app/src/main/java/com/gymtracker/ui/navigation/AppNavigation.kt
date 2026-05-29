@@ -91,7 +91,8 @@ fun AppNavigation() {
             ) { backStackEntry ->
                 ExerciseDetailScreen(
                     exerciseId = backStackEntry.arguments!!.getLong("exerciseId"),
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    bottomPadding = innerPadding.calculateBottomPadding()
                 )
             }
             composable(Screen.Progress.route) {
