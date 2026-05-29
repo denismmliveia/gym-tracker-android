@@ -29,6 +29,7 @@ data class DetailUiState(
     val isSaving: Boolean = false,
     val photoVersion: Long = 0,
     val pendingFrameUri: android.net.Uri? = null,
+    val isSavingPhoto: Boolean = false,
 )
 
 class ExerciseDetailViewModel(
@@ -110,6 +111,16 @@ class ExerciseDetailViewModel(
         _state.update { it.copy(pendingFrameUri = null) }
     }
 
+    fun deletePhoto() {
+        viewModelScope.launch {
+            val exercise = _state.value.exercise ?: return@launch
+            exercise.photoPath?.let { java.io.File(it).delete() }
+            val updated = exercise.copy(photoPath = null)
+            exerciseRepo.updateExercise(updated)
+            _state.update { it.copy(exercise = updated, photoVersion = System.currentTimeMillis()) }
+        }
+    }
+
     fun savePhotoWithFrame(
         context: Context,
         uri: android.net.Uri,
@@ -120,31 +131,37 @@ class ExerciseDetailViewModel(
         viewHeightPx: Float
     ) {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                _state.update { it.copy(isSavingPhoto = true) }
+            }
+
             val bitmap = context.contentResolver.openInputStream(uri)?.use {
                 android.graphics.BitmapFactory.decodeStream(it)
-            } ?: return@launch
+            } ?: run {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    _state.update { it.copy(isSavingPhoto = false) }
+                }
+                return@launch
+            }
 
             val bmpW = bitmap.width.toFloat()
             val bmpH = bitmap.height.toFloat()
 
-            // ContentScale.Crop base scale
+            // Scale that ContentScale.Crop applies to fill the view
             val baseScale = maxOf(viewWidthPx / bmpW, viewHeightPx / bmpH)
             val totalScale = baseScale * userScale
 
-            // Visible region size in bitmap pixels
+            // Visible bitmap region size (in bitmap pixels)
             val cropW = (viewWidthPx / totalScale).coerceAtMost(bmpW)
             val cropH = (viewHeightPx / totalScale).coerceAtMost(bmpH)
 
-            // Center crop starting position (what ContentScale.Crop shows without pan)
-            val centerBmpX = (bmpW - viewWidthPx / baseScale) / 2f
-            val centerBmpY = (bmpH - viewHeightPx / baseScale) / 2f
-
-            // Pan in bitmap coordinates (panX/panY are in screen px, positive = image moved right/down)
-            val panBmpX = panX / totalScale
-            val panBmpY = panY / totalScale
-
-            val left = (centerBmpX - panBmpX).coerceIn(0f, (bmpW - cropW).coerceAtLeast(0f))
-            val top = (centerBmpY - panBmpY).coerceIn(0f, (bmpH - cropH).coerceAtLeast(0f))
+            // The view center maps to the bitmap center (bmpW/2, bmpH/2).
+            // graphicsLayer translationX=panX moves the image right on screen,
+            // so the visible region shifts left in bitmap space by panX/totalScale.
+            val left = (bmpW / 2f - viewWidthPx / (2f * totalScale) - panX / totalScale)
+                .coerceIn(0f, (bmpW - cropW).coerceAtLeast(0f))
+            val top = (bmpH / 2f - viewHeightPx / (2f * totalScale) - panY / totalScale)
+                .coerceIn(0f, (bmpH - cropH).coerceAtLeast(0f))
 
             val cropped = android.graphics.Bitmap.createBitmap(
                 bitmap,
@@ -161,14 +178,24 @@ class ExerciseDetailViewModel(
             }
             cropped.recycle()
 
-            val updated = (_state.value.exercise ?: return@launch).copy(photoPath = destFile.absolutePath)
+            val updated = (_state.value.exercise ?: run {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    _state.update { it.copy(isSavingPhoto = false) }
+                }
+                return@launch
+            }).copy(photoPath = destFile.absolutePath)
+
             exerciseRepo.updateExercise(updated)
-            _state.update {
-                it.copy(
-                    exercise = updated,
-                    photoVersion = System.currentTimeMillis(),
-                    pendingFrameUri = null
-                )
+
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                _state.update {
+                    it.copy(
+                        exercise = updated,
+                        photoVersion = System.currentTimeMillis(),
+                        pendingFrameUri = null,
+                        isSavingPhoto = false
+                    )
+                }
             }
         }
     }
