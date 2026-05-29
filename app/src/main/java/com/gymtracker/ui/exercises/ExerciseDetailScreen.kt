@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import androidx.core.content.FileProvider
 import com.gymtracker.GymTrackerApp
 import java.io.File
 
@@ -49,6 +50,18 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
         uri?.let { vm.setPendingPhoto(it) }
     }
 
+    var showPhotoSheet by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Stores the URI we give to the camera so we can retrieve it on success
+    var pendingCameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) pendingCameraUri?.let { vm.setPendingPhoto(it) }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,9 +81,7 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                     .fillMaxWidth()
                     .height(180.dp)
                     .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
-                    .clickable {
-                        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    },
+                    .clickable { showPhotoSheet = true },
                 contentAlignment = Alignment.Center
             ) {
                 if (photoPath != null && File(photoPath).exists()) {
@@ -269,6 +280,51 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
             text = { Text("${state.weightKg}kg — tu mejor marca en este ejercicio.") },
             confirmButton = { TextButton(onClick = { vm.dismissRecord() }) { Text("Genial") } }
         )
+    }
+
+    if (showPhotoSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showPhotoSheet = false },
+            sheetState = bottomSheetState
+        ) {
+            Column(modifier = Modifier.padding(bottom = 32.dp)) {
+                ListItem(
+                    headlineContent = { Text("Cámara") },
+                    leadingContent = { Icon(Icons.Default.CameraAlt, null) },
+                    modifier = Modifier.clickable {
+                        showPhotoSheet = false
+                        val tempFile = File(context.cacheDir, "camera_temp_${exerciseId}.jpg")
+                        val uri = FileProvider.getUriForFile(
+                            context, "${context.packageName}.provider", tempFile
+                        )
+                        pendingCameraUri = uri
+                        cameraLauncher.launch(uri)
+                    }
+                )
+                ListItem(
+                    headlineContent = { Text("Galería") },
+                    leadingContent = { Icon(Icons.Default.PhotoLibrary, null) },
+                    modifier = Modifier.clickable {
+                        showPhotoSheet = false
+                        photoPicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    }
+                )
+                if (state.exercise?.photoPath != null) {
+                    ListItem(
+                        headlineContent = { Text("Eliminar foto", color = MaterialTheme.colorScheme.error) },
+                        leadingContent = {
+                            Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error)
+                        },
+                        modifier = Modifier.clickable {
+                            showPhotoSheet = false
+                            vm.deletePhoto()
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
