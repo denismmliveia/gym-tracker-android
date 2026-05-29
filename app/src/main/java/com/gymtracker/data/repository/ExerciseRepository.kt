@@ -12,6 +12,7 @@ class ExerciseRepository(
 ) {
     fun getAllGroups(): Flow<List<MuscleGroup>> = muscleGroupDao.getAll()
     fun getExercisesForGroup(groupId: Long): Flow<List<Exercise>> = exerciseDao.getByGroup(groupId)
+    suspend fun getGroupById(id: Long): MuscleGroup? = muscleGroupDao.getById(id)
     suspend fun getExerciseById(id: Long): Exercise? = exerciseDao.getById(id)
     suspend fun insertGroup(group: MuscleGroup): Long = muscleGroupDao.insert(group)
     suspend fun insertExercise(exercise: Exercise): Long = exerciseDao.insert(exercise)

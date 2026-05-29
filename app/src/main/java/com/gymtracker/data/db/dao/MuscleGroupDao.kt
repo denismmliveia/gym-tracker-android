@@ -17,4 +17,7 @@ interface MuscleGroupDao {
 
     @Delete
     suspend fun delete(group: MuscleGroup)
+
+    @Query("SELECT * FROM muscle_groups WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Long): MuscleGroup?
 }

@@ -80,6 +80,7 @@ fun AppNavigation() {
                 ExerciseListScreen(
                     innerPadding,
                     groupId = backStackEntry.arguments!!.getLong("groupId"),
+                    onBack = { navController.popBackStack() },
                     onExerciseClick = { exerciseId ->
                         navController.navigate(Screen.ExerciseDetail.route(exerciseId))
                     }

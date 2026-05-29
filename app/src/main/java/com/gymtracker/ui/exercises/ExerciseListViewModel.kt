@@ -22,6 +22,9 @@ class ExerciseListViewModel(
     private val sessionRepo: SessionRepository
 ) : ViewModel() {
 
+    private val _groupName = MutableStateFlow("")
+    val groupName: StateFlow<String> = _groupName.asStateFlow()
+
     val exercises: StateFlow<List<ExerciseUi>> =
         exerciseRepo.getExercisesForGroup(groupId)
             .map { list ->
@@ -31,6 +34,13 @@ class ExerciseListViewModel(
                 }
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    init {
+        viewModelScope.launch {
+            val group = exerciseRepo.getGroupById(groupId)
+            _groupName.value = if (group != null) "${group.emoji} ${group.name}" else ""
+        }
+    }
 
     fun deleteExercise(exercise: Exercise) {
         viewModelScope.launch { exerciseRepo.deleteExercise(exercise) }

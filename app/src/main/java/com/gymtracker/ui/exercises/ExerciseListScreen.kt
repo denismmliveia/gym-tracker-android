@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import com.gymtracker.GymTrackerApp
 fun ExerciseListScreen(
     padding: PaddingValues,
     groupId: Long,
+    onBack: () -> Unit,
     onExerciseClick: (Long) -> Unit
 ) {
     val context = LocalContext.current
@@ -36,39 +38,53 @@ fun ExerciseListScreen(
         )
     )
     val exercises by vm.exercises.collectAsStateWithLifecycle()
+    val groupName by vm.groupName.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
     var exerciseToDelete by remember { mutableStateOf<ExerciseUi?>(null) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(
-                top = 8.dp,
-                bottom = 80.dp  // espacio para el FAB
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(groupName) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                }
             )
-        ) {
-            items(exercises, key = { it.exercise.id }) { item ->
-                ExerciseRow(
-                    item = item,
-                    onClick = { onExerciseClick(item.exercise.id) },
-                    onLongClick = { exerciseToDelete = item }
-                )
-            }
         }
-        FloatingActionButton(
-            onClick = { showAddDialog = true },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(
-                    end = 16.dp,
-                    bottom = padding.calculateBottomPadding() + 16.dp
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(
+                    top = 8.dp,
+                    bottom = 80.dp
                 )
-        ) {
-            Icon(Icons.Default.Add, "Añadir ejercicio")
+            ) {
+                items(exercises, key = { it.exercise.id }) { item ->
+                    ExerciseRow(
+                        item = item,
+                        onClick = { onExerciseClick(item.exercise.id) },
+                        onLongClick = { exerciseToDelete = item }
+                    )
+                }
+            }
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(
+                        end = 16.dp,
+                        bottom = padding.calculateBottomPadding() + 16.dp
+                    )
+            ) {
+                Icon(Icons.Default.Add, "Añadir ejercicio")
+            }
         }
     }
 
