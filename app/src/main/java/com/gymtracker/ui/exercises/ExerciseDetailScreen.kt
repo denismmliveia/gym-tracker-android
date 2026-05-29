@@ -212,7 +212,7 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
             onDismissRequest = { if (!state.isSavingPhoto) vm.cancelPhotoFrame() },
             properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
         ) {
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(androidx.compose.ui.graphics.Color.Black)
@@ -220,12 +220,11 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                 var viewWidthPx by remember { mutableStateOf(0f) }
                 var viewHeightPx by remember { mutableStateOf(0f) }
 
-                // Image + gesture area
+                // Image + gesture area — takes all space not used by buttons
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.82f)
-                        .align(Alignment.TopCenter)
+                        .weight(1f)
                         .onGloballyPositioned { coords ->
                             viewWidthPx = coords.size.width.toFloat()
                             viewHeightPx = coords.size.height.toFloat()
@@ -298,8 +297,8 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp),
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
