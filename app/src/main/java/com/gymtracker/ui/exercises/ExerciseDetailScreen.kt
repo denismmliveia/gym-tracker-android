@@ -26,9 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import androidx.core.content.FileProvider
 import com.gymtracker.GymTrackerApp
 import java.io.File
 
@@ -43,30 +43,136 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
     )
     val state by vm.state.collectAsStateWithLifecycle()
 
+    // All launchers declared unconditionally (Compose rules)
     val permLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) vm.startVoice(context)
     }
-
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let { vm.setPendingPhoto(it) }
     }
-
     var showPhotoSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    // Stores the URI we give to the camera so we can retrieve it on success
     var pendingCameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
-
-    val cameraLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { success ->
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) pendingCameraUri?.let { vm.setPendingPhoto(it) }
     }
-
     val camPermLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) pendingCameraUri?.let { cameraLauncher.launch(it) }
     }
 
+    val pendingUri = state.pendingFrameUri
+    if (pendingUri != null) {
+        // Full-screen framing — rendered directly in nav slot (no Dialog), fills screen between system bars
+        var panX by remember { mutableStateOf(0f) }
+        var panY by remember { mutableStateOf(0f) }
+        var userScale by remember { mutableStateOf(1f) }
+        var viewWidthPx by remember { mutableStateOf(0f) }
+        var viewHeightPx by remember { mutableStateOf(0f) }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(androidx.compose.ui.graphics.Color.Black)
+        ) {
+            // Image + gesture area
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .onGloballyPositioned { coords ->
+                        viewWidthPx = coords.size.width.toFloat()
+                        viewHeightPx = coords.size.height.toFloat()
+                    }
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            userScale = (userScale * zoom).coerceIn(0.5f, 4f)
+                            panX += pan.x
+                            panY += pan.y
+                        }
+                    }
+            ) {
+                AsyncImage(
+                    model = pendingUri,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = userScale
+                            scaleY = userScale
+                            translationX = panX
+                            translationY = panY
+                        }
+                )
+
+                // Rule-of-thirds grid
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val lineColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.3f)
+                    drawLine(lineColor, androidx.compose.ui.geometry.Offset(size.width / 3f, 0f), androidx.compose.ui.geometry.Offset(size.width / 3f, size.height), strokeWidth = 1f)
+                    drawLine(lineColor, androidx.compose.ui.geometry.Offset(size.width * 2f / 3f, 0f), androidx.compose.ui.geometry.Offset(size.width * 2f / 3f, size.height), strokeWidth = 1f)
+                    drawLine(lineColor, androidx.compose.ui.geometry.Offset(0f, size.height / 3f), androidx.compose.ui.geometry.Offset(size.width, size.height / 3f), strokeWidth = 1f)
+                    drawLine(lineColor, androidx.compose.ui.geometry.Offset(0f, size.height * 2f / 3f), androidx.compose.ui.geometry.Offset(size.width, size.height * 2f / 3f), strokeWidth = 1f)
+                    val m = 16f; val len = 28f
+                    drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, m), androidx.compose.ui.geometry.Offset(m + len, m), strokeWidth = 2.5f)
+                    drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, m), androidx.compose.ui.geometry.Offset(m, m + len), strokeWidth = 2.5f)
+                    drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, m), androidx.compose.ui.geometry.Offset(size.width - m - len, m), strokeWidth = 2.5f)
+                    drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, m), androidx.compose.ui.geometry.Offset(size.width - m, m + len), strokeWidth = 2.5f)
+                    drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, size.height - m), androidx.compose.ui.geometry.Offset(m + len, size.height - m), strokeWidth = 2.5f)
+                    drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, size.height - m), androidx.compose.ui.geometry.Offset(m, size.height - m - len), strokeWidth = 2.5f)
+                    drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, size.height - m), androidx.compose.ui.geometry.Offset(size.width - m - len, size.height - m), strokeWidth = 2.5f)
+                    drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, size.height - m), androidx.compose.ui.geometry.Offset(size.width - m, size.height - m - len), strokeWidth = 2.5f)
+                }
+
+                // Instruction chip
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .statusBarsPadding()
+                        .padding(top = 12.dp),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.6f)
+                ) {
+                    Text(
+                        "Pellizca para zoom · Arrastra para encuadrar",
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = androidx.compose.ui.graphics.Color.White
+                    )
+                }
+            }
+
+            // Buttons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { vm.cancelPhotoFrame() },
+                    modifier = Modifier.weight(1f),
+                    enabled = !state.isSavingPhoto,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                ) { Text("Cancelar") }
+                Button(
+                    onClick = { vm.savePhotoWithFrame(context, pendingUri, panX, panY, userScale, viewWidthPx, viewHeightPx) },
+                    modifier = Modifier.weight(1f),
+                    enabled = !state.isSavingPhoto
+                ) {
+                    if (state.isSavingPhoto) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text("Guardar encuadre")
+                    }
+                }
+            }
+        }
+        return
+    }
+
+    // Normal screen
     Scaffold(
         topBar = {
             TopAppBar(
@@ -79,7 +185,6 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
             modifier = Modifier.padding(innerPadding).padding(16.dp).fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Exercise photo
             val photoPath = state.exercise?.photoPath
             Box(
                 modifier = Modifier
@@ -100,7 +205,6 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
-                    // Overlay icon to indicate it's tappable
                     Icon(
                         Icons.Default.CameraAlt,
                         contentDescription = null,
@@ -120,12 +224,10 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                 }
             }
 
-            // Description
             state.exercise?.description?.let {
                 Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
             }
 
-            // +/- controls
             Card(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -143,12 +245,9 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                 }
             }
 
-            // Action buttons
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(
-                    onClick = {
-                        permLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    },
+                    onClick = { permLauncher.launch(Manifest.permission.RECORD_AUDIO) },
                     modifier = Modifier.weight(1f),
                     enabled = !state.isListening
                 ) {
@@ -180,161 +279,21 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(value = sets, onValueChange = { sets = it },
-                            label = { Text("Series") }, modifier = Modifier.weight(1f))
-                        OutlinedTextField(value = reps, onValueChange = { reps = it },
-                            label = { Text("Reps") }, modifier = Modifier.weight(1f))
-                        OutlinedTextField(value = weight, onValueChange = { weight = it },
-                            label = { Text("Kg") }, modifier = Modifier.weight(1f))
+                        OutlinedTextField(value = sets, onValueChange = { sets = it }, label = { Text("Series") }, modifier = Modifier.weight(1f))
+                        OutlinedTextField(value = reps, onValueChange = { reps = it }, label = { Text("Reps") }, modifier = Modifier.weight(1f))
+                        OutlinedTextField(value = weight, onValueChange = { weight = it }, label = { Text("Kg") }, modifier = Modifier.weight(1f))
                     }
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    vm.confirmVoiceSession(
-                        sets.toIntOrNull() ?: 0,
-                        reps.toIntOrNull() ?: 0,
-                        weight.toFloatOrNull() ?: 0f
-                    )
+                    vm.confirmVoiceSession(sets.toIntOrNull() ?: 0, reps.toIntOrNull() ?: 0, weight.toFloatOrNull() ?: 0f)
                 }) { Text("Guardar") }
             },
             dismissButton = { TextButton(onClick = { vm.dismissVoiceDialog() }) { Text("Cancelar") } }
         )
     }
 
-    // Photo framing overlay
-    state.pendingFrameUri?.let { uri ->
-        var panX by remember { mutableStateOf(0f) }
-        var panY by remember { mutableStateOf(0f) }
-        var userScale by remember { mutableStateOf(1f) }
-
-        androidx.compose.ui.window.Dialog(
-            onDismissRequest = { if (!state.isSavingPhoto) vm.cancelPhotoFrame() },
-            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(androidx.compose.ui.graphics.Color.Black)
-            ) {
-                var viewWidthPx by remember { mutableStateOf(0f) }
-                var viewHeightPx by remember { mutableStateOf(0f) }
-
-                // Image + gesture area — takes all space not used by buttons
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .onGloballyPositioned { coords ->
-                            viewWidthPx = coords.size.width.toFloat()
-                            viewHeightPx = coords.size.height.toFloat()
-                        }
-                        .pointerInput(Unit) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                userScale = (userScale * zoom).coerceIn(0.5f, 4f)
-                                panX += pan.x
-                                panY += pan.y
-                            }
-                        }
-                ) {
-                    AsyncImage(
-                        model = uri,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                scaleX = userScale
-                                scaleY = userScale
-                                translationX = panX
-                                translationY = panY
-                            }
-                    )
-
-                    // Rule-of-thirds grid
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val lineColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.3f)
-                        // vertical thirds
-                        drawLine(lineColor, androidx.compose.ui.geometry.Offset(size.width / 3f, 0f), androidx.compose.ui.geometry.Offset(size.width / 3f, size.height), strokeWidth = 1f)
-                        drawLine(lineColor, androidx.compose.ui.geometry.Offset(size.width * 2f / 3f, 0f), androidx.compose.ui.geometry.Offset(size.width * 2f / 3f, size.height), strokeWidth = 1f)
-                        // horizontal thirds
-                        drawLine(lineColor, androidx.compose.ui.geometry.Offset(0f, size.height / 3f), androidx.compose.ui.geometry.Offset(size.width, size.height / 3f), strokeWidth = 1f)
-                        drawLine(lineColor, androidx.compose.ui.geometry.Offset(0f, size.height * 2f / 3f), androidx.compose.ui.geometry.Offset(size.width, size.height * 2f / 3f), strokeWidth = 1f)
-                        // Corner L-markers
-                        val m = 16f; val len = 28f
-                        // top-left
-                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, m), androidx.compose.ui.geometry.Offset(m + len, m), strokeWidth = 2.5f)
-                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, m), androidx.compose.ui.geometry.Offset(m, m + len), strokeWidth = 2.5f)
-                        // top-right
-                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, m), androidx.compose.ui.geometry.Offset(size.width - m - len, m), strokeWidth = 2.5f)
-                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, m), androidx.compose.ui.geometry.Offset(size.width - m, m + len), strokeWidth = 2.5f)
-                        // bottom-left
-                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, size.height - m), androidx.compose.ui.geometry.Offset(m + len, size.height - m), strokeWidth = 2.5f)
-                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(m, size.height - m), androidx.compose.ui.geometry.Offset(m, size.height - m - len), strokeWidth = 2.5f)
-                        // bottom-right
-                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, size.height - m), androidx.compose.ui.geometry.Offset(size.width - m - len, size.height - m), strokeWidth = 2.5f)
-                        drawLine(androidx.compose.ui.graphics.Color.White, androidx.compose.ui.geometry.Offset(size.width - m, size.height - m), androidx.compose.ui.geometry.Offset(size.width - m, size.height - m - len), strokeWidth = 2.5f)
-                    }
-
-                    // Instruction chip
-                    Surface(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 12.dp),
-                        shape = MaterialTheme.shapes.extraLarge,
-                        color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.6f)
-                    ) {
-                        Text(
-                            "Pellizca para zoom · Arrastra para encuadrar",
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = androidx.compose.ui.graphics.Color.White
-                        )
-                    }
-                }
-
-                // Buttons row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { vm.cancelPhotoFrame() },
-                        modifier = Modifier.weight(1f),
-                        enabled = !state.isSavingPhoto,
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = androidx.compose.ui.graphics.Color.White
-                        )
-                    ) { Text("Cancelar") }
-
-                    Button(
-                        onClick = {
-                            vm.savePhotoWithFrame(
-                                context, uri, panX, panY, userScale, viewWidthPx, viewHeightPx
-                            )
-                        },
-                        modifier = Modifier.weight(1f),
-                        enabled = !state.isSavingPhoto
-                    ) {
-                        if (state.isSavingPhoto) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Text("Guardar encuadre")
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Personal record dialog
     if (state.isPersonalRecord && state.justSaved) {
         AlertDialog(
             onDismissRequest = { vm.dismissRecord() },
@@ -356,9 +315,7 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                     modifier = Modifier.clickable {
                         showPhotoSheet = false
                         val tempFile = File(context.cacheDir, "camera_temp_${exerciseId}.jpg")
-                        val uri = FileProvider.getUriForFile(
-                            context, "${context.packageName}.provider", tempFile
-                        )
+                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", tempFile)
                         pendingCameraUri = uri
                         if (context.checkSelfPermission(Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                             cameraLauncher.launch(uri)
@@ -372,17 +329,13 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                     leadingContent = { Icon(Icons.Default.PhotoLibrary, null) },
                     modifier = Modifier.clickable {
                         showPhotoSheet = false
-                        photoPicker.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
+                        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     }
                 )
                 if (state.exercise?.photoPath != null) {
                     ListItem(
                         headlineContent = { Text("Eliminar foto", color = MaterialTheme.colorScheme.error) },
-                        leadingContent = {
-                            Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error)
-                        },
+                        leadingContent = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) },
                         modifier = Modifier.clickable {
                             showPhotoSheet = false
                             vm.deletePhoto()
