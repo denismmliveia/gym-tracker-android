@@ -63,6 +63,10 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
         if (success) pendingCameraUri?.let { vm.setPendingPhoto(it) }
     }
 
+    val camPermLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) pendingCameraUri?.let { cameraLauncher.launch(it) }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -357,7 +361,11 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
                             context, "${context.packageName}.provider", tempFile
                         )
                         pendingCameraUri = uri
-                        cameraLauncher.launch(uri)
+                        if (context.checkSelfPermission(Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            cameraLauncher.launch(uri)
+                        } else {
+                            camPermLauncher.launch(Manifest.permission.CAMERA)
+                        }
                     }
                 )
                 ListItem(
