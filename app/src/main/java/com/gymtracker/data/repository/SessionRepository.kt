@@ -19,4 +19,6 @@ class SessionRepository(private val sessionDao: SessionDao) {
 
     suspend fun insertSession(session: Session): Long =
         sessionDao.insert(session)
+
+    suspend fun deleteSession(session: Session) = sessionDao.delete(session)
 }

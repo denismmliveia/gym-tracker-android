@@ -30,8 +30,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.ui.unit.Dp
 import com.gymtracker.GymTrackerApp
+import com.gymtracker.data.db.entity.Session
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -188,85 +194,120 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit, bottomPadding: Dp
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(innerPadding).padding(16.dp).fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 32.dp)
         ) {
-            val photoPath = state.exercise?.photoPath
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
-                    .clickable { showPhotoSheet = true },
-                contentAlignment = Alignment.Center
-            ) {
-                if (photoPath != null && File(photoPath).exists()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(File(photoPath))
-                            .memoryCacheKey("ex_${exerciseId}_${state.photoVersion}")
-                            .diskCacheKey("ex_${exerciseId}_${state.photoVersion}")
-                            .build(),
-                        contentDescription = state.exercise?.name,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    Icon(
-                        Icons.Default.CameraAlt,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(8.dp)
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), MaterialTheme.shapes.small)
-                            .padding(4.dp),
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.CameraAlt, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(Modifier.height(4.dp))
-                        Text("Añadir foto", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Photo banner
+            item {
+                val photoPath = state.exercise?.photoPath
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
+                        .clickable { showPhotoSheet = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (photoPath != null && File(photoPath).exists()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(File(photoPath))
+                                .memoryCacheKey("ex_${exerciseId}_${state.photoVersion}")
+                                .diskCacheKey("ex_${exerciseId}_${state.photoVersion}")
+                                .build(),
+                            contentDescription = state.exercise?.name,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        Icon(
+                            Icons.Default.CameraAlt,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(8.dp)
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), MaterialTheme.shapes.small)
+                                .padding(4.dp),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.CameraAlt, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.height(4.dp))
+                            Text("Añadir foto", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }
 
-            state.exercise?.description?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-            }
-
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StepperField(label = "SERIES", displayValue = state.sets.toString(),
-                        onDecrement = { vm.setSets(state.sets - 1) },
-                        onIncrement = { vm.setSets(state.sets + 1) })
-                    StepperField(label = "REPS", displayValue = state.reps.toString(),
-                        onDecrement = { vm.setReps(state.reps - 1) },
-                        onIncrement = { vm.setReps(state.reps + 1) })
-                    StepperField(label = "KG", displayValue = "%.1f".format(state.weightKg),
-                        onDecrement = { vm.setWeight(state.weightKg - 0.5f) },
-                        onIncrement = { vm.setWeight(state.weightKg + 0.5f) })
+            // Description
+            state.exercise?.description?.let { desc ->
+                item {
+                    Text(desc, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                 }
             }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = { permLauncher.launch(Manifest.permission.RECORD_AUDIO) },
-                    modifier = Modifier.weight(1f),
-                    enabled = !state.isListening
-                ) {
-                    Icon(Icons.Default.Mic, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(if (state.isListening) "Escuchando..." else "Voz")
+            // Steppers card
+            item {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        StepperField(label = "SERIES", displayValue = state.sets.toString(),
+                            onDecrement = { vm.setSets(state.sets - 1) },
+                            onIncrement = { vm.setSets(state.sets + 1) })
+                        StepperField(label = "REPS", displayValue = state.reps.toString(),
+                            onDecrement = { vm.setReps(state.reps - 1) },
+                            onIncrement = { vm.setReps(state.reps + 1) })
+                        StepperField(label = "KG", displayValue = "%.1f".format(state.weightKg),
+                            onDecrement = { vm.setWeight(state.weightKg - 0.5f) },
+                            onIncrement = { vm.setWeight(state.weightKg + 0.5f) })
+                    }
                 }
-                OutlinedButton(onClick = { vm.saveSession() }, modifier = Modifier.weight(1f), enabled = !state.isSaving) {
-                    Icon(Icons.Default.Check, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Guardar")
+            }
+
+            // Action buttons
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(
+                        onClick = { permLauncher.launch(Manifest.permission.RECORD_AUDIO) },
+                        modifier = Modifier.weight(1f),
+                        enabled = !state.isListening
+                    ) {
+                        Icon(Icons.Default.Mic, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(if (state.isListening) "Escuchando..." else "Voz")
+                    }
+                    OutlinedButton(onClick = { vm.saveSession() }, modifier = Modifier.weight(1f), enabled = !state.isSaving) {
+                        Icon(Icons.Default.Check, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Guardar")
+                    }
                 }
+            }
+
+            // Session history header — only shown when there are sessions
+            if (state.sessions.isNotEmpty()) {
+                item {
+                    Text(
+                        "Historial",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }
+
+            // Session rows with swipe-to-delete
+            items(state.sessions, key = { it.id }) { session ->
+                SessionHistoryRow(
+                    session = session,
+                    onDelete = { vm.deleteSession(session) }
+                )
             }
         }
     }
@@ -367,6 +408,56 @@ private fun StepperField(label: String, displayValue: String, onDecrement: () ->
             }
             FilledTonalIconButton(onClick = onIncrement, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SessionHistoryRow(session: Session, onDelete: () -> Unit) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+                true
+            } else false
+        }
+    )
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.errorContainer, MaterialTheme.shapes.medium)
+                    .padding(end = 16.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.onErrorContainer)
+            }
+        }
+    ) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    java.text.SimpleDateFormat("dd/MM/yy", java.util.Locale.getDefault())
+                        .format(java.util.Date(session.date)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+                Text(
+                    "${session.sets}×${session.reps} · ${"%.1f".format(session.weightKg)}kg",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }

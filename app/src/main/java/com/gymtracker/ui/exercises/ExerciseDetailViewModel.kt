@@ -30,6 +30,7 @@ data class DetailUiState(
     val photoVersion: Long = 0,
     val pendingFrameUri: android.net.Uri? = null,
     val isSavingPhoto: Boolean = false,
+    val sessions: List<Session> = emptyList(),
 )
 
 class ExerciseDetailViewModel(
@@ -54,6 +55,15 @@ class ExerciseDetailViewModel(
                 )
             }
         }
+        viewModelScope.launch {
+            sessionRepo.getSessionsForExercise(exerciseId).collect { list ->
+                _state.update { it.copy(sessions = list) }
+            }
+        }
+    }
+
+    fun deleteSession(session: Session) {
+        viewModelScope.launch { sessionRepo.deleteSession(session) }
     }
 
     fun setSets(value: Int) = _state.update { it.copy(sets = maxOf(1, value)) }
