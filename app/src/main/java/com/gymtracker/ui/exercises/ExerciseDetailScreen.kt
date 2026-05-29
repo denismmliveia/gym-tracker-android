@@ -1,6 +1,7 @@
 package com.gymtracker.ui.exercises
 
 import android.Manifest
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,6 +60,10 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit, bottomPadding: Dp
     }
     val camPermLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) pendingCameraUri?.let { cameraLauncher.launch(it) }
+    }
+
+    BackHandler(enabled = state.pendingFrameUri != null) {
+        vm.cancelPhotoFrame()
     }
 
     val pendingUri = state.pendingFrameUri
