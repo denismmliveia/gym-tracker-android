@@ -26,7 +26,9 @@ data class DetailUiState(
     val pendingParsed: ParsedSession? = null,   // waiting for user confirmation
     val voiceRawText: String = "",
     val justSaved: Boolean = false,
-    val isSaving: Boolean = false
+    val isSaving: Boolean = false,
+    val photoVersion: Long = 0,
+    val pendingFrameUri: android.net.Uri? = null,
 )
 
 class ExerciseDetailViewModel(
@@ -100,19 +102,73 @@ class ExerciseDetailViewModel(
     fun dismissVoiceDialog() = _state.update { it.copy(pendingParsed = null) }
     fun dismissRecord() = _state.update { it.copy(isPersonalRecord = false, justSaved = false) }
 
-    fun updatePhoto(context: Context, uri: Uri) {
-        viewModelScope.launch {
-            val exercise = _state.value.exercise ?: return@launch
+    fun setPendingPhoto(uri: android.net.Uri) {
+        _state.update { it.copy(pendingFrameUri = uri) }
+    }
+
+    fun cancelPhotoFrame() {
+        _state.update { it.copy(pendingFrameUri = null) }
+    }
+
+    fun savePhotoWithFrame(
+        context: Context,
+        uri: android.net.Uri,
+        panX: Float,
+        panY: Float,
+        userScale: Float,
+        viewWidthPx: Float,
+        viewHeightPx: Float
+    ) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val bitmap = context.contentResolver.openInputStream(uri)?.use {
+                android.graphics.BitmapFactory.decodeStream(it)
+            } ?: return@launch
+
+            val bmpW = bitmap.width.toFloat()
+            val bmpH = bitmap.height.toFloat()
+
+            // ContentScale.Crop base scale
+            val baseScale = maxOf(viewWidthPx / bmpW, viewHeightPx / bmpH)
+            val totalScale = baseScale * userScale
+
+            // Visible region size in bitmap pixels
+            val cropW = (viewWidthPx / totalScale).coerceAtMost(bmpW)
+            val cropH = (viewHeightPx / totalScale).coerceAtMost(bmpH)
+
+            // Center crop starting position (what ContentScale.Crop shows without pan)
+            val centerBmpX = (bmpW - viewWidthPx / baseScale) / 2f
+            val centerBmpY = (bmpH - viewHeightPx / baseScale) / 2f
+
+            // Pan in bitmap coordinates (panX/panY are in screen px, positive = image moved right/down)
+            val panBmpX = panX / totalScale
+            val panBmpY = panY / totalScale
+
+            val left = (centerBmpX - panBmpX).coerceIn(0f, (bmpW - cropW).coerceAtLeast(0f))
+            val top = (centerBmpY - panBmpY).coerceIn(0f, (bmpH - cropH).coerceAtLeast(0f))
+
+            val cropped = android.graphics.Bitmap.createBitmap(
+                bitmap,
+                left.toInt(),
+                top.toInt(),
+                cropW.toInt().coerceAtMost(bitmap.width - left.toInt()),
+                cropH.toInt().coerceAtMost(bitmap.height - top.toInt())
+            )
+            bitmap.recycle()
+
             val destFile = java.io.File(context.filesDir, "exercise_${exerciseId}.jpg")
-            val copied = runCatching {
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    destFile.outputStream().use { output -> input.copyTo(output) }
-                } != null
-            }.getOrDefault(false)
-            if (copied) {
-                val updated = exercise.copy(photoPath = destFile.absolutePath)
-                exerciseRepo.updateExercise(updated)
-                _state.update { it.copy(exercise = updated) }
+            java.io.FileOutputStream(destFile).use { out ->
+                cropped.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
+            }
+            cropped.recycle()
+
+            val updated = (_state.value.exercise ?: return@launch).copy(photoPath = destFile.absolutePath)
+            exerciseRepo.updateExercise(updated)
+            _state.update {
+                it.copy(
+                    exercise = updated,
+                    photoVersion = System.currentTimeMillis(),
+                    pendingFrameUri = null
+                )
             }
         }
     }

@@ -6,6 +6,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,7 +15,10 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.gymtracker.GymTrackerApp
 import java.io.File
 
@@ -41,7 +46,7 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
     }
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        uri?.let { vm.updatePhoto(context, it) }
+        uri?.let { vm.setPendingPhoto(it) }
     }
 
     Scaffold(
@@ -70,7 +75,11 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
             ) {
                 if (photoPath != null && File(photoPath).exists()) {
                     AsyncImage(
-                        model = File(photoPath),
+                        model = ImageRequest.Builder(context)
+                            .data(File(photoPath))
+                            .memoryCacheKey("ex_${exerciseId}_${state.photoVersion}")
+                            .diskCacheKey("ex_${exerciseId}_${state.photoVersion}")
+                            .build(),
                         contentDescription = state.exercise?.name,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -175,6 +184,81 @@ fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit) {
             },
             dismissButton = { TextButton(onClick = { vm.dismissVoiceDialog() }) { Text("Cancelar") } }
         )
+    }
+
+    // Photo framing overlay
+    state.pendingFrameUri?.let { uri ->
+        var panX by remember { mutableStateOf(0f) }
+        var panY by remember { mutableStateOf(0f) }
+        var userScale by remember { mutableStateOf(1f) }
+
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { vm.cancelPhotoFrame() },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(androidx.compose.ui.graphics.Color.Black)
+            ) {
+                // Framing area
+                var viewWidthPx by remember { mutableStateOf(0f) }
+                var viewHeightPx by remember { mutableStateOf(0f) }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.82f)
+                        .align(Alignment.TopCenter)
+                        .onGloballyPositioned { coords ->
+                            viewWidthPx = coords.size.width.toFloat()
+                            viewHeightPx = coords.size.height.toFloat()
+                        }
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                userScale = (userScale * zoom).coerceIn(0.5f, 4f)
+                                panX += pan.x
+                                panY += pan.y
+                            }
+                        }
+                ) {
+                    AsyncImage(
+                        model = uri,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                scaleX = userScale
+                                scaleY = userScale
+                                translationX = panX
+                                translationY = panY
+                            }
+                    )
+                }
+
+                // Buttons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { vm.cancelPhotoFrame() },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = androidx.compose.ui.graphics.Color.White)
+                    ) { Text("Cancelar") }
+                    Button(
+                        onClick = {
+                            vm.savePhotoWithFrame(context, uri, panX, panY, userScale, viewWidthPx, viewHeightPx)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Guardar encuadre") }
+                }
+            }
+        }
     }
 
     // Personal record dialog
