@@ -40,6 +40,8 @@ import com.gymtracker.GymTrackerApp
 import com.gymtracker.data.db.entity.Session
 import java.io.File
 
+private val sessionDateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseDetailScreen(exerciseId: Long, onBack: () -> Unit, bottomPadding: Dp = 0.dp) {
@@ -424,6 +426,11 @@ private fun SessionHistoryRow(session: Session, onDelete: () -> Unit) {
             } else false
         }
     )
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+            dismissState.reset()
+        }
+    }
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
@@ -448,8 +455,7 @@ private fun SessionHistoryRow(session: Session, onDelete: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    java.text.SimpleDateFormat("dd/MM/yy", java.util.Locale.getDefault())
-                        .format(java.util.Date(session.date)),
+                    sessionDateFormat.format(java.util.Date(session.date)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )

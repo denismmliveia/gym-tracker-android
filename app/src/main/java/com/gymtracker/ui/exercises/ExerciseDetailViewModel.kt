@@ -54,8 +54,7 @@ class ExerciseDetailViewModel(
                     weightKg = latest?.weightKg ?: 0f
                 )
             }
-        }
-        viewModelScope.launch {
+            // Collect sessions only after initial state is set
             sessionRepo.getSessionsForExercise(exerciseId).collect { list ->
                 _state.update { it.copy(sessions = list) }
             }
