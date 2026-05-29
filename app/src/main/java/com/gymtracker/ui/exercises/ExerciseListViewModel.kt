@@ -22,8 +22,8 @@ class ExerciseListViewModel(
     private val sessionRepo: SessionRepository
 ) : ViewModel() {
 
-    private val _groupName = MutableStateFlow("")
-    val groupName: StateFlow<String> = _groupName.asStateFlow()
+    private val _groupName = MutableStateFlow<String?>(null)
+    val groupName: StateFlow<String?> = _groupName.asStateFlow()
 
     val exercises: StateFlow<List<ExerciseUi>> =
         exerciseRepo.getExercisesForGroup(groupId)

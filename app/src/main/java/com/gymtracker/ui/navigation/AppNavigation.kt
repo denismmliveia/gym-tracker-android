@@ -78,7 +78,7 @@ fun AppNavigation() {
                 arguments = listOf(navArgument("groupId") { type = NavType.LongType })
             ) { backStackEntry ->
                 ExerciseListScreen(
-                    innerPadding,
+                    bottomPadding = innerPadding.calculateBottomPadding(),
                     groupId = backStackEntry.arguments!!.getLong("groupId"),
                     onBack = { navController.popBackStack() },
                     onExerciseClick = { exerciseId ->

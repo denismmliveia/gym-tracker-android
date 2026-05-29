@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,7 +23,7 @@ import com.gymtracker.GymTrackerApp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseListScreen(
-    padding: PaddingValues,
+    bottomPadding: Dp,
     groupId: Long,
     onBack: () -> Unit,
     onExerciseClick: (Long) -> Unit
@@ -45,7 +46,7 @@ fun ExerciseListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(groupName) },
+                title = { groupName?.let { Text(it) } },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -63,7 +64,7 @@ fun ExerciseListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(
                     top = 8.dp,
-                    bottom = 80.dp
+                    bottom = bottomPadding + 72.dp
                 )
             ) {
                 items(exercises, key = { it.exercise.id }) { item ->
@@ -80,7 +81,7 @@ fun ExerciseListScreen(
                     .align(Alignment.BottomEnd)
                     .padding(
                         end = 16.dp,
-                        bottom = padding.calculateBottomPadding() + 16.dp
+                        bottom = bottomPadding + 16.dp
                     )
             ) {
                 Icon(Icons.Default.Add, "Añadir ejercicio")
