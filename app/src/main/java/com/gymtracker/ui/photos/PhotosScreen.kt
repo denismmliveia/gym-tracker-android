@@ -57,7 +57,11 @@ fun PhotosScreen(padding: PaddingValues) {
         ) {
             AsyncImage(
                 model = File(photo.photoPath),
-                contentDescription = null,
+                contentDescription = "${photo.zone.displayName()}, ${
+                    java.time.Instant.ofEpochMilli(photo.date)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .format(photoDateFormat)
+                }",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize()
             )
@@ -74,7 +78,7 @@ fun PhotosScreen(padding: PaddingValues) {
                     "${photo.zone.displayName()} · ${
                         java.time.Instant.ofEpochMilli(photo.date)
                             .atZone(java.time.ZoneId.systemDefault())
-                            .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                            .format(photoDateFormat)
                     }",
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
                     style = MaterialTheme.typography.labelSmall,
@@ -194,6 +198,9 @@ fun PhotosScreen(padding: PaddingValues) {
         )
     }
 }
+
+private val photoDateFormat: java.time.format.DateTimeFormatter =
+    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
 fun BodyZone.displayName(): String = when (this) {
     BodyZone.FULL_BODY -> "Cuerpo entero"
