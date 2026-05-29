@@ -40,7 +40,7 @@ import com.gymtracker.GymTrackerApp
 import com.gymtracker.data.db.entity.Session
 import java.io.File
 
-private val sessionDateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+private val sessionDateFormat = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -455,7 +455,9 @@ private fun SessionHistoryRow(session: Session, onDelete: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    sessionDateFormat.format(java.util.Date(session.date)),
+                    java.time.Instant.ofEpochMilli(session.date)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .format(sessionDateFormat),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )

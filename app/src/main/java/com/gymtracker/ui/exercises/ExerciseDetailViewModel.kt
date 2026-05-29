@@ -44,19 +44,23 @@ class ExerciseDetailViewModel(
 
     init {
         viewModelScope.launch {
-            val exercise = exerciseRepo.getExerciseById(exerciseId)
-            val latest = sessionRepo.getLatestSession(exerciseId)
-            _state.update {
-                it.copy(
-                    exercise = exercise,
-                    sets = latest?.sets ?: 3,
-                    reps = latest?.reps ?: 10,
-                    weightKg = latest?.weightKg ?: 0f
-                )
-            }
-            // Collect sessions only after initial state is set
-            sessionRepo.getSessionsForExercise(exerciseId).collect { list ->
-                _state.update { it.copy(sessions = list) }
+            try {
+                val exercise = exerciseRepo.getExerciseById(exerciseId)
+                val latest = sessionRepo.getLatestSession(exerciseId)
+                _state.update {
+                    it.copy(
+                        exercise = exercise,
+                        sets = latest?.sets ?: 3,
+                        reps = latest?.reps ?: 10,
+                        weightKg = latest?.weightKg ?: 0f
+                    )
+                }
+                // Collect sessions only after initial state is set
+                sessionRepo.getSessionsForExercise(exerciseId).collect { list ->
+                    _state.update { it.copy(sessions = list) }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ExerciseDetailVM", "Failed to load exercise data", e)
             }
         }
     }
