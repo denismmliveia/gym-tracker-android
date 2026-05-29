@@ -32,6 +32,10 @@ class ExerciseListViewModel(
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    fun deleteExercise(exercise: Exercise) {
+        viewModelScope.launch { exerciseRepo.deleteExercise(exercise) }
+    }
+
     fun addExercise(name: String, description: String) {
         viewModelScope.launch {
             exerciseRepo.insertExercise(

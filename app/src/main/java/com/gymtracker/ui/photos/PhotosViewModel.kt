@@ -44,6 +44,13 @@ class PhotosViewModel(private val repo: BodyPhotoRepository) : ViewModel() {
         }
     }
 
+    fun deletePhoto(photo: BodyPhoto) {
+        viewModelScope.launch {
+            File(photo.photoPath).delete()
+            repo.deletePhoto(photo)
+        }
+    }
+
     class Factory(private val repo: BodyPhotoRepository) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST")

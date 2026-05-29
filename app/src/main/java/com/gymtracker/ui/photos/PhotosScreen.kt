@@ -3,6 +3,8 @@ package com.gymtracker.ui.photos
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.gymtracker.data.db.entity.BodyPhoto
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -33,6 +36,7 @@ fun PhotosScreen(padding: PaddingValues) {
     val selectedZone by vm.selectedZone.collectAsStateWithLifecycle()
     var showZonePicker by remember { mutableStateOf(false) }
     var pendingUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var photoToDelete by remember { mutableStateOf<BodyPhoto?>(null) }
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let { pendingUri = it; showZonePicker = true }
@@ -73,15 +77,38 @@ fun PhotosScreen(padding: PaddingValues) {
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 items(photos, key = { it.id }) { photo ->
+                    @OptIn(ExperimentalFoundationApi::class)
                     AsyncImage(
                         model = File(photo.photoPath),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.aspectRatio(1f)
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .combinedClickable(
+                                onClick = {},
+                                onLongClick = { photoToDelete = photo }
+                            )
                     )
                 }
             }
         }
+    }
+
+    photoToDelete?.let { photo ->
+        AlertDialog(
+            onDismissRequest = { photoToDelete = null },
+            title = { Text("¿Eliminar foto?") },
+            text = { Text("Esta foto se eliminará permanentemente.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.deletePhoto(photo)
+                    photoToDelete = null
+                }) { Text("Eliminar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { photoToDelete = null }) { Text("Cancelar") }
+            }
+        )
     }
 
     if (showZonePicker && pendingUri != null) {

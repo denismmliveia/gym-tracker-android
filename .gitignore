@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+.claude/
+.superpowers/
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+.idea/vcs.xml

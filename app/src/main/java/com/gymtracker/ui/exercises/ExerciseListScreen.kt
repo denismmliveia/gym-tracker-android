@@ -1,6 +1,8 @@
 package com.gymtracker.ui.exercises
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,6 +37,7 @@ fun ExerciseListScreen(
     )
     val exercises by vm.exercises.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
+    var exerciseToDelete by remember { mutableStateOf<ExerciseUi?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -49,7 +52,11 @@ fun ExerciseListScreen(
             )
         ) {
             items(exercises, key = { it.exercise.id }) { item ->
-                ExerciseRow(item = item, onClick = { onExerciseClick(item.exercise.id) })
+                ExerciseRow(
+                    item = item,
+                    onClick = { onExerciseClick(item.exercise.id) },
+                    onLongClick = { exerciseToDelete = item }
+                )
             }
         }
         FloatingActionButton(
@@ -65,6 +72,23 @@ fun ExerciseListScreen(
         }
     }
 
+    exerciseToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { exerciseToDelete = null },
+            title = { Text("¿Eliminar ejercicio?") },
+            text = { Text("Se eliminará \"${item.exercise.name}\" y todo su historial.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.deleteExercise(item.exercise)
+                    exerciseToDelete = null
+                }) { Text("Eliminar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { exerciseToDelete = null }) { Text("Cancelar") }
+            }
+        )
+    }
+
     if (showAddDialog) {
         AddExerciseDialog(
             onConfirm = { name, description ->
@@ -76,9 +100,10 @@ fun ExerciseListScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ExerciseRow(item: ExerciseUi, onClick: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+private fun ExerciseRow(item: ExerciseUi, onClick: () -> Unit, onLongClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick)) {
         Row(
             modifier = Modifier
                 .padding(16.dp)
