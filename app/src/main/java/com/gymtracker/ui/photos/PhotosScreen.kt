@@ -1,9 +1,11 @@
 package com.gymtracker.ui.photos
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -11,9 +13,12 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -37,9 +42,61 @@ fun PhotosScreen(padding: PaddingValues) {
     var showZonePicker by remember { mutableStateOf(false) }
     var pendingUri by remember { mutableStateOf<android.net.Uri?>(null) }
     var photoToDelete by remember { mutableStateOf<BodyPhoto?>(null) }
+    var fullScreenPhoto by remember { mutableStateOf<BodyPhoto?>(null) }
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let { pendingUri = it; showZonePicker = true }
+    }
+
+    fullScreenPhoto?.let { photo ->
+        BackHandler { fullScreenPhoto = null }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            AsyncImage(
+                model = File(photo.photoPath),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+            )
+            // Zone + date chip at top center
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(top = 12.dp),
+                shape = MaterialTheme.shapes.extraLarge,
+                color = Color.Black.copy(alpha = 0.6f)
+            ) {
+                Text(
+                    "${photo.zone.displayName()} · ${
+                        java.time.Instant.ofEpochMilli(photo.date)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    }",
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White
+                )
+            }
+            // Close button top right
+            IconButton(
+                onClick = { fullScreenPhoto = null },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .statusBarsPadding()
+                    .padding(top = 8.dp, end = 8.dp)
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Cerrar",
+                    tint = Color.White
+                )
+            }
+        }
+        return
     }
 
     Scaffold(
@@ -85,7 +142,7 @@ fun PhotosScreen(padding: PaddingValues) {
                         modifier = Modifier
                             .aspectRatio(1f)
                             .combinedClickable(
-                                onClick = {},
+                                onClick = { fullScreenPhoto = photo },
                                 onLongClick = { photoToDelete = photo }
                             )
                     )
