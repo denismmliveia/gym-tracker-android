@@ -43,6 +43,8 @@ fun ExerciseListScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var exerciseToDelete by remember { mutableStateOf<ExerciseUi?>(null) }
 
+    val fabClearance = 56.dp + 16.dp // standard FAB height + bottom margin
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -64,7 +66,7 @@ fun ExerciseListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(
                     top = 8.dp,
-                    bottom = bottomPadding + 72.dp
+                    bottom = bottomPadding + fabClearance
                 )
             ) {
                 items(exercises, key = { it.exercise.id }) { item ->

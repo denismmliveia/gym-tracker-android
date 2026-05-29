@@ -38,7 +38,7 @@ class ExerciseListViewModel(
     init {
         viewModelScope.launch {
             val group = exerciseRepo.getGroupById(groupId)
-            _groupName.value = if (group != null) "${group.emoji} ${group.name}" else ""
+            _groupName.value = if (group != null) "${group.emoji} ${group.name}" else "—"
         }
     }
 
